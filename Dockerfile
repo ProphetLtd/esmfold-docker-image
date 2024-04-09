@@ -57,16 +57,17 @@ RUN pip install gdown==5.0.1
 # add gdown to PATH
 ENV PATH="/home/vscode/.local/bin:${PATH}"
 WORKDIR /home/vscode
-RUN gdown --fuzzy --no-cookies --no-check-certificate -O openfold.tar.gz 1PvZLs4zeh3g_JajIsbeQmhOewoI_Stll \
-    && gdown --fuzzy --no-cookies --no-check-certificate -O esm-main.tar.gz 1YE_CEOUc5FYxrEnNiQcLgttnNxUXqQj-
+# RUN gdown --fuzzy --no-cookies --no-check-certificate -O openfold.tar.gz 1PvZLs4zeh3g_JajIsbeQmhOewoI_Stll \
+#     && gdown --fuzzy --no-cookies --no-check-certificate -O esm-main.tar.gz 1YE_CEOUc5FYxrEnNiQcLgttnNxUXqQj-
+RUN gdown --fuzzy --no-cookies --no-check-certificate -O openfold.tar.gz 13HYb90DiUrlnydSluE2yyxjGZ00vVYDf \
+    && gdown --fuzzy --no-cookies --no-check-certificate -O esm-main.tar.gz 13HqB428kfL0vhbApgW6jwPdz-I_D0AjZ
 COPY create-env.sh /home/vscode/create-env.sh
 # install openfold conda env
 RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
     rm /home/vscode/openfold.tar.gz && \
     chown -R vscode:vscode /home/vscode/openfold && \
     chmod -R 777 /home/vscode/openfold && \
-    cd /home/vscode/openfold && \
-    conda env create -f /home/vscode/openfold/environment.yml
+    cd /home/vscode/openfold
 # install esm-fold command
 RUN zsh /home/vscode/create-env.sh
 
