@@ -110,29 +110,29 @@ optional arguments:
 
 If GPUs are available.
 
-```shell
-$ mkdir -p ./example/{input,output,logs}
-$ docker run --rm --gpus all \
-    -v ./example/input:/home/vscode/input \
-    -v ./example/output:/home/vscode/output \
-    esmfold:base \
-    -i /home/vscode/input/1a2y-HLC.fasta \
-    -o /home/vscode/output \
-    > ./example/logs/pred.log 2>./example/logs/pred.err
+```sh
+mkdir -p ./example/{input,output,logs}
+docker run --rm --gpus all \
+  -v ./example/input:/home/vscode/input \
+  -v ./example/output:/home/vscode/output \
+  esmfold:base \
+  -i /home/vscode/input/1a2y-HLC.fasta \
+  -o /home/vscode/output \
+  > ./example/logs/pred.log 2>./example/logs/pred.err
 ```
 
 If no GPUs are available, add the `--cpu-only` flag:
 
-```shell
-$ mkdir -p ./example/{input,output,logs}
-$ docker run --rm \
-    -v ./example/input:/home/vscode/input \
-    -v ./example/output:/home/vscode/output \
-    esmfold:base \
-    --cpu-only \
-    -i /home/vscode/input/1a2y-HLC.fasta \
-    -o /home/vscode/output \
-    > ./example/logs/pred.log 2>./example/logs/pred.err
+```sh
+mkdir -p ./example/{input,output,logs}
+docker run --rm \
+  -v ./example/input:/home/vscode/input \
+  -v ./example/output:/home/vscode/output \
+  esmfold:base \
+  --cpu-only \
+  -i /home/vscode/input/1a2y-HLC.fasta \
+  -o /home/vscode/output \
+  > ./example/logs/pred.log 2>./example/logs/pred.err
 ```
 
 - `-i /input/1a2y-HLC.fasta`: input fasta file
@@ -151,12 +151,12 @@ Other ESMFold flags, refer to [ESMFold repo documentation section](https://githu
 
 If you want to overwrite the entrypoint, you can do so by adding the following to the end of the `docker run` command:
 
-```shell
+```sh
 docker run --rm --gpus all --entrypoint "/bin/zsh" esmfold:base -c "echo 'hello world'"
 ```
 
 ### Test GPU
 
-```shell
+```sh
 docker run --rm --gpus all --entrypoint "nvidia-smi" esmfold:base
 ```
