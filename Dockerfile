@@ -71,17 +71,16 @@ RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
 # install esm-fold command
 RUN zsh /home/vscode/create-env.sh
 
-# # copy esm-fold checkpoints
-# COPY esm2_t36_3B_UR50D-contact-regression.pt  /home/vscode/.cache/torch/hub/checkpoints/esm2_t36_3B_UR50D-contact-regression.pt
-# COPY esm2_t36_3B_UR50D.pt  /home/vscode/.cache/torch/hub/checkpoints/esm2_t36_3B_UR50D.pt
-# COPY esmfold_3B_v1.pt  /home/vscode/.cache/torch/hub/checkpoints/esmfold_3B_v1.pt
-
 # use gdown to download above files from google drive
 RUN mkdir -p /home/vscode/.cache/torch/hub/checkpoints
 WORKDIR /home/vscode/.cache/torch/hub/checkpoints
-RUN gdown --fuzzy -O esm2_t36_3B_UR50D-contact-regression.pt 1lW8CVTSzX8bwLxbM8lAu_qXQkrPZuSxA \
-    && gdown --fuzzy -O esm2_t36_3B_UR50D.pt 1CHTS2cB8HrgayylwVB8tsrLKcpTqKFLx \
-    && gdown --fuzzy -O esmfold_3B_v1.pt 1CQZdYpXI1pb55ro8hCEP37pMsG2_Dbul
+
+# RUN gdown --fuzzy -O esm2_t36_3B_UR50D-contact-regression.pt 1lW8CVTSzX8bwLxbM8lAu_qXQkrPZuSxA \
+#     && gdown --fuzzy -O esm2_t36_3B_UR50D.pt 1CHTS2cB8HrgayylwVB8tsrLKcpTqKFLx \
+#     && gdown --fuzzy -O esmfold_3B_v1.pt 1CQZdYpXI1pb55ro8hCEP37pMsG2_Dbul
+RUN gdown --fuzzy -O esm2_t36_3B_UR50D-contact-regression.pt 1lW8CVTSzX8bwLxbM8lAu_qXQkrPZuSxA
+RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t36_3B_UR50D.pt -o esm2_t36_3B_UR50D.pt
+RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esmfold_3B_v1.pt -o esmfold_3B_v1.pt
 
 # change permission
 RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints
