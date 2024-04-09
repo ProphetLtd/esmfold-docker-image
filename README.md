@@ -22,7 +22,7 @@ Contents:
 ```shell
 docker build -t $USER/esmfold:base -f Dockerfile .
 # or
-docker build -t $USEr/esmfold:run -f Dockerfile.runtime .
+docker build -t $USER/esmfold:run -f Dockerfile.runtime .
 ```
 
 - `-t $USER/esmfold:base`: tag the image with the name `$USER/esmfold` and the tag `base`.
