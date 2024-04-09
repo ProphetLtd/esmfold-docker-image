@@ -1,6 +1,6 @@
-#!/bin/zsh 
+#!/bin/zsh
 
 WD=$(pwd)
 
 # Build the image
-docker build -t chunan/esmfold:base .
+docker build -t $USER/esmfold:base .
