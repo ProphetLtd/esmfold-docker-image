@@ -75,7 +75,6 @@ ENV PATH="/home/vscode/.local/bin:${PATH}"
 WORKDIR /home/vscode
 RUN gdown --fuzzy --no-cookies --no-check-certificate -O openfold.tar.gz 13HYb90DiUrlnydSluE2yyxjGZ00vVYDf \
     && gdown --fuzzy --no-cookies --no-check-certificate -O esm-main.tar.gz 13HqB428kfL0vhbApgW6jwPdz-I_D0AjZ
-COPY create-env.sh /home/vscode/create-env.sh
 # install openfold conda env
 RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
     rm /home/vscode/openfold.tar.gz && \
@@ -83,7 +82,9 @@ RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
     chmod -R 777 /home/vscode/openfold && \
     cd /home/vscode/openfold
 # install esm-fold command
-RUN zsh /home/vscode/create-env.sh
+COPY create-env.sh /home/vscode/create-env.sh
+RUN sudo chmod 777 /home/vscode/create-env.sh \
+    && zsh /home/vscode/create-env.sh
 
 # ------------------- checkpoints -------------------
 # At running time, skip downloading
@@ -91,8 +92,9 @@ RUN zsh /home/vscode/create-env.sh
 RUN mkdir -p /home/vscode/.cache/torch/hub/checkpoints
 
 # change permission
-RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints
 COPY run-esm-fold.sh /home/vscode/run-esm-fold.sh
+RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints \
+    && sudo chmod 777 /home/vscode/run-esm-fold.sh
 
 WORKDIR /home/vscode
 ENTRYPOINT ["zsh", "run-esm-fold.sh"]
