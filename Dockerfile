@@ -69,6 +69,7 @@ RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
     chmod -R 777 /home/vscode/openfold && \
     cd /home/vscode/openfold
 # install esm-fold command
+RUN sudo chmod -R 777 /home/vscode/create-env.sh
 RUN zsh /home/vscode/create-env.sh
 
 # use gdown to download above files from google drive
@@ -85,6 +86,7 @@ RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esmfold_3B_v1.pt -o esmf
 # change permission
 RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints
 COPY run-esm-fold.sh /home/vscode/run-esm-fold.sh
+RUN sudo chmod -R 777 /home/vscode/run-esm-fold.sh
 
 WORKDIR /home/vscode
 ENTRYPOINT ["zsh", "run-esm-fold.sh"]
