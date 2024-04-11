@@ -69,6 +69,7 @@ RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
     chmod -R 777 /home/vscode/openfold && \
     cd /home/vscode/openfold
 # install esm-fold command
+RUN sudo chmod -R 777 /home/vscode/create-env.sh
 RUN zsh /home/vscode/create-env.sh
 
 # use gdown to download above files from google drive
