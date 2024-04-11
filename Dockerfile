@@ -86,6 +86,7 @@ RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esmfold_3B_v1.pt -o esmf
 # change permission
 RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints
 COPY run-esm-fold.sh /home/vscode/run-esm-fold.sh
+RUN sudo chmod -R 777 /home/vscode/run-esm-fold.sh
 
 WORKDIR /home/vscode
 ENTRYPOINT ["zsh", "run-esm-fold.sh"]
