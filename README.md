@@ -19,16 +19,30 @@ Contents:
 
 ## Build Image
 
+Use Dockerfiles provided in `./Dockerfiles` to build desired images.
+
+The following are provided in the script `./build-image.sh`:
+
 ```shell
-docker build -t $USER/esmfold:base -f Dockerfile .
-# or
-docker build -t $USER/esmfold:run -f Dockerfile.runtime .
+# build image, add non-root user
+docker build --no-cache -t $USER/esmfold:nonroot-devel -f Dockerfiles/Dockerfile.nonroot .
+
+# build runtime image, add non-root user
+docker build --no-cache -t $USER/esmfold:nonroot-runtime -f Dockerfiles/Dockerfile.nonroot.runtime .
+
+# build image, root user only
+docker build --no-cache -t $USER/esmfold:root-devel -f Dockerfiles/Dockerfile.root .
+
+# build runtime image, root user only
+docker build --no-cache -t $USER/esmfold:root-runtime -f Dockerfiles/Dockerfile.root.runtime .
 ```
 
-- `-t $USER/esmfold:base`: tag the image with the name `$USER/esmfold` and the tag `base`.
-  - You can omit `$USER` if you like
-- `-f Dockerfile`: this version downloads the checkpoint files into the image
-- `-f Dockerfile.runtime`: this version does not download the checkpoint files. Users need to mount the checkpoint files into the container at run time.
+- `-t $USER/esmfold:root-devel`: tag images
+  - `$USER`: your username
+  - `esmfold`: image name
+  - `root-devel`: image tag, see below for details
+    - `root`/`non-root`: the image runs as `root`, or a non-root user (`vscode` with `USER_UID` and `USER_GID` both set to `1000`).
+    - `devel`/`runtime`: the image includes model checkpoints and the model itself if `devel`, or not if `runtime` meaning checkpoints need to be mounted at runtime.
 
 ## Details
 
@@ -65,13 +79,20 @@ Model links are derived from repository [esm](https://github.com/facebookresearc
 
 ## Run Image
 
+Example scripts are provdied in `./example/scripts` to run ESMFold with the built image.
+
+**NOTICE**: these scripts assume your current working directory is the root of the repository.
+
 The default entrypoint for the image, as specified in the Dockerfile, is
 
 ```Dockerfile
 ENTRYPOINT ["zsh", "run-esm-fold.sh"]
 ```
 
-content of `run-esm-fold.sh`:
+<!-- insert a foldable element -->
+<details>
+
+<summary>content of `run-esm-fold.sh`:</summary>
 
 ```shell
 #!/bin/zsh
@@ -85,13 +106,14 @@ conda activate py39-esmfold
 # run esm-fold
 esm-fold $@
 ```
+</details>
 
 ### Help information
 
 Run the following command to see the help information of `esm-fold`:
 
 ```shell
-docker run --rm esmfold:base --help
+docker run --rm $USER/esmfold:root-devel --help
 ```
 
 stdout:
@@ -132,24 +154,28 @@ optional arguments:
 If GPUs are available.
 
 ```sh
-mkdir -p ./example/{input,output,logs}
-docker run --rm --gpus all \
-  -v ./example/input:/home/vscode/input \
-  -v ./example/output:/home/vscode/output \
-  esmfold:base \
-  -i /home/vscode/input/1a2y-HLC.fasta \
-  -o /home/vscode/output \
-  > ./example/logs/pred.log 2>./example/logs/pred.err
+cd /path/to/esmfold-docker-image  # root of the repository
 
-# if use Dockerfile.runtime
+mkdir -p ./example/{input,output,logs}
+
+# if use devel, checkpoints are already in the image
 docker run --rm --gpus all \
-  -v ./example/input:/home/vscode/input \
-  -v ./example/output:/home/vscode/output \
-  -v /path/to/host/checkpoints:/home/vscode/.cache/torch/hub/checkpoints \
-  esmfold:base \
-  -i /home/vscode/input/1a2y-HLC.fasta \
-  -o /home/vscode/output \
-  > ./example/logs/pred.log 2>./example/logs/pred.err
+-v ./example/input:/home/vscode/input \
+-v ./example/output:/home/vscode/output \
+esmfold:nonroot-devel \
+-i /home/vscode/input/1a2y-HLC.fasta \
+-o /home/vscode/output \
+> ./example/logs/pred.log 2>./example/logs/pred.err
+
+# if use runtime, checkpoints need to be mounted
+docker run --rm --gpus all \
+-v ./example/input:/home/vscode/input \
+-v ./example/output:/home/vscode/output \
+-v /path/to/host/checkpoints:/home/vscode/.cache/torch/hub/checkpoints \
+esmfold:nonroot-runtime \
+-i /home/vscode/input/1a2y-HLC.fasta \
+-o /home/vscode/output \
+> ./example/logs/pred.log 2>./example/logs/pred.err
 ```
 
 If no GPUs are available, add the `--cpu-only` flag:
@@ -157,13 +183,13 @@ If no GPUs are available, add the `--cpu-only` flag:
 ```sh
 mkdir -p ./example/{input,output,logs}
 docker run --rm \
-  -v ./example/input:/home/vscode/input \
-  -v ./example/output:/home/vscode/output \
-  esmfold:base \
-  --cpu-only \
-  -i /home/vscode/input/1a2y-HLC.fasta \
-  -o /home/vscode/output \
-  > ./example/logs/pred.log 2>./example/logs/pred.err
+-v ./example/input:/home/vscode/input \
+-v ./example/output:/home/vscode/output \
+esmfold:nonroot-devel \
+--cpu-only \
+-i /home/vscode/input/1a2y-HLC.fasta \
+-o /home/vscode/output \
+> ./example/logs/pred.log 2>./example/logs/pred.err
 
 # if use Dockerfile.runtime, remember to mount the checkpoint files
 # -v /path/to/host/checkpoints:/home/vscode/.cache/torch/hub/checkpoints
@@ -186,11 +212,11 @@ Other ESMFold flags, refer to [ESMFold repo documentation section](https://githu
 If you want to overwrite the entrypoint, you can do so by adding the following to the end of the `docker run` command:
 
 ```sh
-docker run --rm --gpus all --entrypoint "/bin/zsh" esmfold:base -c "echo 'hello world'"
+docker run --rm --gpus all --entrypoint "/bin/zsh" $USER/esmfold:nonroot-devel -c "echo 'hello world'"
 ```
 
 ### Test GPU
 
 ```sh
-docker run --rm --gpus all --entrypoint "nvidia-smi" esmfold:base
+docker run --rm --gpus all --entrypoint "nvidia-smi" $USER/esmfold:nonroot-devel
 ```
