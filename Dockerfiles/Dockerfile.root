@@ -1,0 +1,75 @@
+FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
+# 11.3 required for openfold
+
+ENV HOME=/root
+RUN apt-get update \
+  && apt-get install -yq \
+  zsh \
+  curl \
+  vim \
+  git \
+  && apt-get clean
+
+# ------------------------------------------------------------------------------
+# Install zsh and oh-my-zsh
+# ------------------------------------------------------------------------------
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || true
+RUN chsh -s /bin/zsh
+SHELL ["/bin/zsh", "-c"]
+
+# ------------------------------------------------------------------------------
+# Install miniconda
+# ------------------------------------------------------------------------------
+# credits: @pangyuteng
+# refer to: https://gist.github.com/pangyuteng/f5b00fe63ac31a27be00c56996197597
+# Use the above args during building https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+# Choices
+# PLATFORM: Linux, MacOSX, or Windows
+# OS_TYPE : x86_64, arm64, ppc64le, s390x, or x86, armv7l
+ARG CONDA_VER=latest
+ARG PLATFORM=Linux
+ARG OS_TYPE=x86_64
+# Install miniconda to /miniconda
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
+RUN bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p /miniconda -b
+RUN rm Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh
+ENV PATH=/miniconda/bin:${PATH}
+RUN source /miniconda/etc/profile.d/conda.sh \
+  && conda init zsh
+
+
+# ------------------- install OpenFold and ESM2 -------------------
+RUN pip install gdown==5.0.1
+ENV PATH="$HOME/.local/bin:${PATH}"
+WORKDIR $HOME
+RUN gdown --fuzzy --no-cookies --no-check-certificate -O $HOME/openfold.tar.gz 13HYb90DiUrlnydSluE2yyxjGZ00vVYDf \
+    && gdown --fuzzy --no-cookies --no-check-certificate -O $HOME/esm-main.tar.gz 13HqB428kfL0vhbApgW6jwPdz-I_D0AjZ
+# install openfold conda env
+RUN tar -zxvf $HOME/openfold.tar.gz -C $HOME \
+    && rm $HOME/openfold.tar.gz
+# install esm-fold command
+COPY ./create-env.sh $HOME/create-env.sh
+RUN chmod +x $HOME/create-env.sh \
+  && zsh $HOME/create-env.sh \
+  && rm $HOME/create-env.sh
+
+# ------------------- checkpoints -------------------
+# RUN gdown --fuzzy -O esm2_t36_3B_UR50D-contact-regression.pt 1lW8CVTSzX8bwLxbM8lAu_qXQkrPZuSxA \
+#     && gdown --fuzzy -O esm2_t36_3B_UR50D.pt 1CHTS2cB8HrgayylwVB8tsrLKcpTqKFLx \
+#     && gdown --fuzzy -O esmfold_3B_v1.pt 1CQZdYpXI1pb55ro8hCEP37pMsG2_Dbul
+RUN mkdir -p $HOME/.cache/torch/hub/checkpoints
+WORKDIR $HOME/.cache/torch/hub/checkpoints
+RUN gdown --fuzzy -O esm2_t36_3B_UR50D-contact-regression.pt 1lW8CVTSzX8bwLxbM8lAu_qXQkrPZuSxA
+RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t36_3B_UR50D.pt -o esm2_t36_3B_UR50D.pt
+RUN curl https://dl.fbaipublicfiles.com/fair-esm/models/esmfold_3B_v1.pt -o esmfold_3B_v1.pt
+
+# ------------------- clean up -------------------
+RUN apt-get clean
+
+# ------------------------------------------------------------------------------
+# End of base image
+# ------------------------------------------------------------------------------
+COPY run-esm-fold.sh $HOME/run-esm-fold.sh
+RUN chmod +x $HOME/run-esm-fold.sh
+WORKDIR $HOME
+ENTRYPOINT ["zsh", "run-esm-fold.sh"]

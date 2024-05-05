@@ -1,0 +1,94 @@
+FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
+# 11.3 required for openfold
+
+# ------------------------------------------------------------------------------
+# Add a non-root user to
+# prevent files being created with root permissions on host machine.
+# ------------------------------------------------------------------------------
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+  && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+  #
+  # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
+  && apt-get update \
+  && apt-get install -y sudo \
+  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# ------------------------------------------------------------------------------
+# Install zsh and ohmyzsh
+# ------------------------------------------------------------------------------
+# Install zsh and ohmyzsh
+RUN apt-get update && apt-get install -yq zsh sudo curl wget jq vim git-core gnupg locales && apt-get clean
+# RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || true
+# Default powerline10k theme, no plugins installed
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.5/zsh-in-docker.sh)" -- \
+  -t robbyrussell
+RUN sudo chsh -s /bin/zsh
+# Cleanup
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# ********************************************************
+# * Anything else you want to do like clean up goes here *
+# ********************************************************
+
+# [Optional] Set the default user. Omit if you want to keep the default as root.
+USER $USERNAME
+# add user to sudo group
+RUN sudo usermod -aG sudo $USERNAME
+
+# ------------------------------------------------------------------------------
+# Install miniconda
+# ------------------------------------------------------------------------------
+RUN sudo apt-get update && sudo apt-get install -y curl git
+# credits: @pangyuteng
+# refer to: https://gist.github.com/pangyuteng/f5b00fe63ac31a27be00c56996197597
+# Use the above args during building https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+# Choices
+# PLATFORM: Linux, MacOSX, or Windows
+# OS_TYPE : x86_64, arm64, ppc64le, s390x, or x86, armv7l
+ARG CONDA_VER=latest
+ARG PLATFORM=Linux
+ARG OS_TYPE=x86_64
+# Install miniconda to /miniconda
+WORKDIR /home/${USERNAME}
+RUN curl -LO "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh"
+RUN bash Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh -p ./miniconda -b
+RUN rm Miniconda3-${CONDA_VER}-Linux-${OS_TYPE}.sh
+ENV PATH=/home/${USERNAME}/miniconda/bin:${PATH}
+RUN conda update -y conda
+
+# ------------------- install OpenFold and ESM2 -------------------
+RUN pip install gdown==5.0.1
+# add gdown to PATH
+ENV PATH="/home/vscode/.local/bin:${PATH}"
+WORKDIR /home/vscode
+RUN gdown --fuzzy --no-cookies --no-check-certificate -O openfold.tar.gz 13HYb90DiUrlnydSluE2yyxjGZ00vVYDf \
+  && gdown --fuzzy --no-cookies --no-check-certificate -O esm-main.tar.gz 13HqB428kfL0vhbApgW6jwPdz-I_D0AjZ
+# install openfold conda env
+RUN tar -zxvf /home/vscode/openfold.tar.gz -C /home/vscode && \
+  rm /home/vscode/openfold.tar.gz && \
+  chown -R vscode:vscode /home/vscode/openfold && \
+  chmod -R 777 /home/vscode/openfold && \
+  cd /home/vscode/openfold
+# install esm-fold command
+COPY ./create-env.sh /home/vscode/create-env.sh
+RUN sudo chmod 777 /home/vscode/create-env.sh \
+  && zsh /home/vscode/create-env.sh
+
+# ------------------- checkpoints -------------------
+# At running time, skip downloading
+# mount checkpoint folder to `/home/vscode/.cache/torch/hub/checkpoints`
+RUN mkdir -p /home/vscode/.cache/torch/hub/checkpoints
+
+# change permission
+COPY run-esm-fold.sh /home/vscode/run-esm-fold.sh
+RUN sudo chmod -R 777 /home/vscode/.cache/torch/hub/checkpoints \
+  && sudo chmod 777 /home/vscode/run-esm-fold.sh
+
+WORKDIR /home/vscode
+ENTRYPOINT ["zsh", "run-esm-fold.sh"]
