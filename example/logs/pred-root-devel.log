@@ -1,0 +1,5 @@
+24/05/05 02:05:50 | INFO | root | Reading sequences from /root/input/1a2y-HLC.fasta
+24/05/05 02:05:50 | INFO | root | Loaded 1 sequences from /root/input/1a2y-HLC.fasta
+24/05/05 02:05:50 | INFO | root | Loading model
+24/05/05 02:06:31 | INFO | root | Starting Predictions
+24/05/05 02:06:46 | INFO | root | Predicted structure for 1a2y_0P|H:L:C with length 355, pLDDT 80.1, pTM 0.595 in 14.5s. 1 / 1 completed.
