@@ -220,3 +220,7 @@ docker run --rm --gpus all --entrypoint "/bin/zsh" $USER/esmfold:nonroot-devel -
 ```sh
 docker run --rm --gpus all --entrypoint "nvidia-smi" $USER/esmfold:nonroot-devel
 ```
+
+##  Dockerhub
+
+The image is also available on Dockerhub: [biochunan/esmfold-image](https://hub.docker.com/r/biochunan/esmfold-image/tags)
