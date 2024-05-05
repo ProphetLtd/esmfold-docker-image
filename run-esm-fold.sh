@@ -1,7 +1,7 @@
-#!/bin/zsh 
+#!/bin/zsh
 
 # init conda
-source $HOME/.zshrc 
+source $HOME/.zshrc
 
 # activate py39-esmfold
 conda activate py39-esmfold
