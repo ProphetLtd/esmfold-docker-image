@@ -158,6 +158,33 @@ cd /path/to/esmfold-docker-image  # root of the repository
 
 mkdir -p ./example/{input,output,logs}
 
+########################
+#      run as root     #
+########################
+# if use devel, checkpoints are already in the image
+docker run --rm --gpus all \
+-v ./example/input:/root/input \
+-v ./example/output:/root/output \
+esmfold:root-devel \
+-i /root/input/1a2y-HLC.fasta \
+-o /root/output \
+> ./example/logs/pred-root-devel.log 2>./example/logs/pred-root-devel.err
+
+# if use runtime, mount the checkpoints on the host machine, e.g. 
+trainModelsDir=/mnt/Data/trained_models/ESM2
+docker run --rm --gpus all \
+-v ./example/input:/root/input \
+-v ./example/output:/root/output \
+-v $trainModelsDir:/root/.cache/torch/hub/checkpoints \
+esmfold:root-runtime \
+-i /root/input/1a2y-HLC.fasta \
+-o /root/output \
+> ./example/logs/pred-root-devel.log 2>./example/logs/pred-root-devel.err
+
+########################
+# run as non-root user #
+########################
+# non-root user `vscode` with userID:groupID=1000:1000
 # if use devel, checkpoints are already in the image
 docker run --rm --gpus all \
 -v ./example/input:/home/vscode/input \
