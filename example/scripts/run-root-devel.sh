@@ -2,7 +2,6 @@
 
 # Set configuration variables
 BASE=$(dirname $(realpath $0))
-trainModelsDir=/mnt/Data/trained_models/ESM2
 
 pushd $(dirname $(dirname $BASE))  # root directory of the project
 docker run --rm --gpus all \
