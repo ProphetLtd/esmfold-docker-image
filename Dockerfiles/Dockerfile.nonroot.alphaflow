@@ -5,6 +5,10 @@ RUN zsh -c "git clone https://github.com/bjing2016/alphaflow.git /home/vscode/al
     source ~/.zshrc && conda activate py39-esmfold && \
     python -m pip install pandas pytorch_lightning==2.0.4 mdtraj"
 
+# Monkey patch OpenFold so non-ancient versions of NumPy can be used with it
+sed -i 's/np\.object/object/g' /home/vscode/.conda/envs/py39-esmfold/lib/python3.9/site-packages/openfold/data/templates.py
+
+
 COPY run-alphaflow.sh /home/vscode/run-alphaflow.sh
 WORKDIR /home/vscode/
 ENTRYPOINT ["zsh", "run-alphaflow.sh"]
