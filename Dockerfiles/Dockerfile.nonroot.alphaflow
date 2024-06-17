@@ -1,0 +1,13 @@
+FROM biochunan/esmfold-image:nonroot-devel
+
+# Install AlphaFlow
+RUN conda activate py39-esmfold
+RUN git clone https://github.com/bjing2016/alphaflow.git /home/vscode/alphaflow
+RUN python -m pip install numpy==1.21.2 pandas==1.5.3 && \
+    python -m pip install torch==1.13.1+cu117 -f https://download.pytorch.org/whl/torch_stable.html && \
+    python -m pip install biopython==1.79 dm-tree==0.1.6 modelcif==0.7 ml-collections==0.1.0 scipy==1.7.3 absl-py einops && \
+    python -m pip install pytorch_lightning==2.0.4 fair-esm mdtraj wandb
+
+COPY run-alphaflow.sh /home/vscode/run-alphaflow.sh
+WORKDIR /home/vscode/alphaflow
+ENTRYPOINT ["zsh", "run-alphaflow.sh"]
