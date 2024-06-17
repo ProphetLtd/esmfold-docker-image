@@ -1,9 +1,9 @@
 FROM biochunan/esmfold-image:nonroot-devel
 
 # Install AlphaFlow
-RUN zsh -c "source ~/.zshrc && conda activate py39-esmfold"
-RUN zsh -c "git clone https://github.com/bjing2016/alphaflow.git /home/vscode/alphaflow"
-RUN zsh -c "python -m pip install pandas pytorch_lightning==2.0.4 mdtraj"
+RUN zsh -c "git clone https://github.com/bjing2016/alphaflow.git /home/vscode/alphaflow && \
+    source ~/.zshrc && conda activate py39-esmfold && \
+    python -m pip install pandas pytorch_lightning==2.0.4 mdtraj"
 
 COPY run-alphaflow.sh /home/vscode/run-alphaflow.sh
 WORKDIR /home/vscode/alphaflow
