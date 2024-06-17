@@ -6,6 +6,7 @@ if [ $# -lt 2 ]; then
 fi
 
 # activate py39-esmfold
+source $HOME/.zshrc
 conda activate py39-esmfold
 
 command=$1
