@@ -6,5 +6,5 @@ RUN zsh -c "git clone https://github.com/bjing2016/alphaflow.git /home/vscode/al
     python -m pip install pandas pytorch_lightning==2.0.4 mdtraj"
 
 COPY run-alphaflow.sh /home/vscode/run-alphaflow.sh
-WORKDIR /home/vscode/alphaflow
+WORKDIR /home/vscode/
 ENTRYPOINT ["zsh", "run-alphaflow.sh"]
