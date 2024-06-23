@@ -15,9 +15,9 @@ command=$1
 shift
 
 if [[ "$command" == "predict" ]]; then
-  python /home/vscode/alphaflow/predict.py --weights /home/vscode/esmflow_pdb_base_202402.pt "$@"
+  python $HOME/alphaflow/predict.py --weights $HOME/esmflow_pdb_base_202402.pt "$@"
 elif [[ "$command" == "train" ]]; then
-  python /home/vscode/alphaflow/train.py "$@"
+  python $HOME/alphaflow/train.py "$@"
 else
   echo "Unknown command: $command"
   echo "Usage: $0 <predict|train> <additional parameters>"
